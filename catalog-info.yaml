@@ -1,0 +1,26 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: hiroba-catalog
+  title: Hiroba Catalog
+  description: Backstage software templates used to scaffold new 7K-Hiroba projects.
+  annotations:
+    github.com/project-slug: 7K-Hiroba/hiroba-catalog
+  tags:
+    - backstage
+    - templates
+    - idp
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Location
+metadata:
+  name: hiroba-templates
+  description: All Hiroba software templates
+spec:
+  targets:
+    - ./templates/nextjs-app/template.yaml
+    - ./templates/go-service/template.yaml

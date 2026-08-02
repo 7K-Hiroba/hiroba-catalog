@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    uses: 7K-Group/workflows-library/.github/workflows/ci-lint-pr-title.yml@v1
+
+  lint:
+    name: YAML + Actions lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install yamllint
+        run: pipx install yamllint
+
+      # Helm chart files under skeleton/*/helm are Go templates, not valid YAML —
+      # they are covered by helm lint/template/unittest in the smoke-test job.
+      - name: yamllint
+        run: >-
+          yamllint
+          -d "{extends: default, rules: {line-length: {max: 200}, truthy: disable, document-start: disable}}"
+          catalog-info.yaml
+          templates/*/template.yaml
+          .github/workflows/
+          templates/*/skeleton/*/.github/workflows/
+
+      - name: actionlint
+        uses: raven-actions/actionlint@v2
+        with:
+          files: |
+            .github/workflows/*.yml
+            templates/*/skeleton/*/.github/workflows/*.yml
+
+  smoke-test:
+    name: Skeleton smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Helm
+        uses: 7K-Group/workflows-library/.github/actions/setup-platform-tools@v1
+        with:
+          crossplane-version: ""
+          kubeconform-version: ""
+          pluto-version: ""
+
+      - name: Install helm-unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest.git --verify=false
+
+      - name: Render skeletons and validate charts
+        run: ./hack/smoke-test.sh

@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  pr-title:
+    if: github.event_name == 'pull_request'
+    uses: 7K-Group/workflows-library/.github/workflows/ci-lint-pr-title.yml@v1
+
+  go:
+    uses: 7K-Group/workflows-library/.github/workflows/ci-go-function.yml@v1
+    with:
+      path: .
+      go-version: '1.26'
+      run-govulncheck: true

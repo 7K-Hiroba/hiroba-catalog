@@ -1,0 +1,131 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: go-service
+  title: Go Microservice
+  description: Scaffold a Go microservice (stdlib HTTP, health endpoint, graceful shutdown) with CI/CD, optional Dockerfile and Helm chart.
+  tags:
+    - go
+    - microservice
+    - backend
+    - recommended
+spec:
+  owner: platform-team
+  type: service
+  parameters:
+    - title: Component
+      required:
+        - name
+        - owner
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Unique name of the component (lowercase, dashes allowed). Used for the repo, module path, image and chart name.
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          ui:autofocus: true
+          ui:options:
+            rows: 5
+        description:
+          title: Description
+          type: string
+          description: A short description of the component.
+        owner:
+          title: Owner
+          type: string
+          description: Backstage group that owns this component.
+          default: platform-team
+    - title: Options
+      properties:
+        includeDocker:
+          title: Generate Dockerfile
+          type: boolean
+          description: Multi-stage Dockerfile (golang:1.26-alpine -> distroless nonroot) plus Docker CI/release workflows.
+          default: true
+        includeHelm:
+          title: Generate Helm chart
+          type: boolean
+          description: Standard application Helm chart under helm/ (deployment, service, ingress, hpa) plus Helm CI/release workflows.
+          default: true
+    - title: Repository
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repository Location
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+            allowedOwners:
+              - 7K-Hiroba
+            # Authenticate as the logged-in user (OAuth grant) instead of the
+            # Backstage GitHub App. The token is exposed as secrets.USER_OAUTH_TOKEN.
+            requestUserCredentials:
+              secretsKey: USER_OAUTH_TOKEN
+              additionalScopes:
+                github:
+                  - repo
+                  - workflow
+  steps:
+    - id: fetch-base
+      name: Fetch base skeleton
+      action: fetch:template
+      input:
+        url: ./skeleton/base
+        copyWithoutRender:
+          - ./.github/**
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
+
+    - id: fetch-docker
+      name: Fetch Dockerfile
+      if: ${{ parameters.includeDocker }}
+      action: fetch:template
+      input:
+        url: ./skeleton/docker
+        copyWithoutRender:
+          - ./.github/**
+
+    - id: fetch-helm
+      name: Fetch Helm chart
+      if: ${{ parameters.includeHelm }}
+      action: fetch:template
+      input:
+        url: ./skeleton/helm
+        copyWithoutRender:
+          - ./.github/**
+          - ./helm/templates/**
+        values:
+          name: ${{ parameters.name }}
+
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts:
+          - github.com
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+        defaultBranch: main
+        repoVisibility: private
+        # User's OAuth token — the repo is created and pushed as the logged-in user,
+        # not as the Backstage GitHub App.
+        token: ${{ secrets.USER_OAUTH_TOKEN }}
+
+    - id: register
+      name: Register in catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

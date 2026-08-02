@@ -1,0 +1,10 @@
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release-please:
+    uses: 7K-Group/workflows-library/.github/workflows/release-please.yml@v1
+    secrets: inherit

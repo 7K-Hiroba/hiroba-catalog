@@ -1,0 +1,27 @@
+name: Release Docker
+
+# release-please creates the GitHub release; publishing it triggers image release.
+on:
+  release:
+    types: [published]
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      # Tags are plain vX.Y.Z (include-component-in-tag: false); strip the v.
+      - id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: version
+    uses: 7K-Group/workflows-library/.github/workflows/release-app.yml@v1
+    with:
+      path: .
+      version: ${{ needs.version.outputs.version }}
+      # release-app wants the SHORT name; full Harbor ref is built from secrets.
+      image-name: ${{ github.event.repository.name }}
+    secrets: inherit

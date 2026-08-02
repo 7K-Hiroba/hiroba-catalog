@@ -1,0 +1,19 @@
+name: Helm CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['helm/**']
+  push:
+    branches: [main]
+    paths: ['helm/**']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  helm:
+    uses: 7K-Group/workflows-library/.github/workflows/ci-helm.yml@v1
+    with:
+      path: helm

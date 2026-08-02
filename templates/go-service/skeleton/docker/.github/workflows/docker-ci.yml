@@ -1,0 +1,29 @@
+name: Docker CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      # ci-app wants a full image ref; GHCR refs must be lowercase.
+      - id: image
+        run: echo "image=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+  app:
+    needs: meta
+    uses: 7K-Group/workflows-library/.github/workflows/ci-app.yml@v1
+    with:
+      path: .
+      image-name: ${{ needs.meta.outputs.image }}
