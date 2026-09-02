@@ -6,5 +6,5 @@ on:
 
 jobs:
   release-please:
-    uses: 7K-Group/workflows-library/.github/workflows/release-please.yml@v1
+    uses: 7K-Group/workflows-library/.github/workflows/release-please.yml@8f3f1dd841f9f34fc74a5fdb76577119b251ec0c # v1
     secrets: inherit

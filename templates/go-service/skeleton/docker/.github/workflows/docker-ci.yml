@@ -23,7 +23,7 @@ jobs:
 
   app:
     needs: meta
-    uses: 7K-Group/workflows-library/.github/workflows/ci-app.yml@v1
+    uses: 7K-Group/workflows-library/.github/workflows/ci-app.yml@8f3f1dd841f9f34fc74a5fdb76577119b251ec0c # v1
     with:
       path: .
       image-name: ${{ needs.meta.outputs.image }}

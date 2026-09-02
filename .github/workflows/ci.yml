@@ -13,14 +13,14 @@ concurrency:
 jobs:
   pr-title:
     if: github.event_name == 'pull_request'
-    uses: 7K-Group/workflows-library/.github/workflows/ci-lint-pr-title.yml@v1
+    uses: 7K-Group/workflows-library/.github/workflows/ci-lint-pr-title.yml@8f3f1dd841f9f34fc74a5fdb76577119b251ec0c # v1
 
   lint:
     name: YAML + Actions lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Install yamllint
         run: pipx install yamllint
@@ -37,7 +37,7 @@ jobs:
           templates/*/skeleton/*/.github/workflows/
 
       - name: actionlint
-        uses: raven-actions/actionlint@v2
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7 # v2
         with:
           files: |
             .github/workflows/*.yml
@@ -48,10 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Set up Helm
-        uses: 7K-Group/workflows-library/.github/actions/setup-platform-tools@v1
+        uses: 7K-Group/workflows-library/.github/actions/setup-platform-tools@8f3f1dd841f9f34fc74a5fdb76577119b251ec0c # v1
         with:
           crossplane-version: ""
           kubeconform-version: ""
