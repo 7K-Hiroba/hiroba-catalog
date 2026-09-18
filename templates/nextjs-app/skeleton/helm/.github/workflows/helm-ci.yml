@@ -14,6 +14,6 @@ concurrency:
 
 jobs:
   helm:
-    uses: 7K-Group/workflows-library/.github/workflows/ci-helm.yml@v1
+    uses: 7K-Group/workflows-library/.github/workflows/ci-helm.yml@8f3f1dd841f9f34fc74a5fdb76577119b251ec0c # v1
     with:
       path: helm
